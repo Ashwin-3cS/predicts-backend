@@ -1,8 +1,10 @@
 // src/controllers/wallet.controller.js
 const CoinbaseService = require("../services/coinbase.service");
 const Wallet = require("../models/wallet.model");
+const MemoryService = require("../utils/memoryStore");
 
 const coinbaseService = new CoinbaseService();
+const memoryService = new MemoryService();
 
 exports.createWallet = async (req, res) => {
   try {
@@ -31,6 +33,13 @@ exports.createWallet = async (req, res) => {
     });
 
     console.log("Wallet saved to DB:", wallet);
+
+    await memoryService.storeWallet(userId, cdpWallet)
+    const checkMemory = memoryService.hasWallet(userId)
+    console.log(checkMemory, "... memory check")
+
+    const getWallet = await memoryService.retrieveWallet(userId)
+    console.log(getWallet, "... getWallet")
 
     res.status(201).json({
       success: true,
