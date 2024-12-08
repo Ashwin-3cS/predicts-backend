@@ -113,7 +113,7 @@ exports.createMarket = async (req, res) => {
   }
 };
 
-exports.getMarketInfo = async (req, res) => {
+exports.getMarketInfoTrial = async (req, res) => {
   try {
     const { marketId } = req.params;
 
@@ -136,6 +136,32 @@ exports.getMarketInfo = async (req, res) => {
         ...market.toObject(),
         ...marketInfo,
       },
+    });
+  } catch (error) {
+    console.error("Get market info controller error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+
+exports.getMarketInfo = async (req, res) => {
+  try {
+    const { marketId } = req.params;
+
+    const market = await Market.findOne({ marketId: Number(marketId) });
+    if (!market) {
+      return res.status(404).json({
+        success: false,
+        error: "Market not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: market
     });
   } catch (error) {
     console.error("Get market info controller error:", error);
