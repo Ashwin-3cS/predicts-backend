@@ -1,6 +1,9 @@
 const { Coinbase, ServerSigner, Wallet } = require("@coinbase/coinbase-sdk");
 const PREDICTION_MARKET_ABI = require("../contracts/PredictionMarket.abi");
 const Market = require("../models/market.model");
+const { Schema } = require("mongoose");
+const Wallets = require("../models/wallet.model");
+const { id } = require("ethers");
 
 class CoinbaseService {
   constructor() {
@@ -26,10 +29,31 @@ class CoinbaseService {
     oracle
   ) {
     try {
-      const wallet = await Wallet.create({
-        networkId: Coinbase.networks.BaseSepolia,
-        id: walletId,
-      });
+      // const wallet = await Wallet.create({
+      //   networkId: Coinbase.networks.BaseSepolia,
+      //   // id: "6c3b7b73-751c-47c4-bb2b-75e01bf2d654",
+      // });
+      // console.log(wallet, "create network.....")
+
+      const getWallet = await Wallets.findOne({address: walletId});
+
+      // console.log(getWallet)
+      if(!getWallet) {
+        return
+      }
+
+      const walletData = getWallet.instance;
+      const defaultAddress = walletData.defaultAddress;
+      console.log('Default Address:', defaultAddress);
+      if (!walletData || !walletData.defaultAddress) {
+        console.log("i...")
+        throw new Error('WalletModel default address not set');
+      }
+
+      const wallet = new Wallet(getWallet.instance)
+      console.log(wallet, "wallet")
+
+      
 
       const contractInvocation = await wallet.invokeContract({
         contractAddress,
@@ -42,8 +66,11 @@ class CoinbaseService {
           ).toString(), // Convert to string
           _oracle: oracle,
         },
+        // args: args,
         abi: PREDICTION_MARKET_ABI,
       });
+
+      console.log(contractInvocation, "contractInvocation....")
       // Wait for transaction confirmation
       await contractInvocation.wait();
 
@@ -54,6 +81,7 @@ class CoinbaseService {
         {},
         PREDICTION_MARKET_ABI
       );
+      console.log(marketCount, "marketCount....")
 
       // Create market in database
       const market = new Market({
@@ -65,6 +93,7 @@ class CoinbaseService {
         creator: wallet.addresses[0].id,
         contractAddress,
       });
+      console.log(market, "market....")
 
       await market.save();
 

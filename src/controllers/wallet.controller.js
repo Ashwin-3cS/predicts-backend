@@ -1,8 +1,10 @@
 // src/controllers/wallet.controller.js
 const CoinbaseService = require("../services/coinbase.service");
 const Wallet = require("../models/wallet.model");
+const MemoryService = require("../utils/memoryStore");
 
 const coinbaseService = new CoinbaseService();
+const memoryService = new MemoryService();
 
 exports.createWallet = async (req, res) => {
   try {
@@ -28,9 +30,17 @@ exports.createWallet = async (req, res) => {
       address: cdpWallet.addresses[0].id,
       networkId: cdpWallet.model.network_id,
       walletId: cdpWallet.model.id,
+      instance: cdpWallet
     });
 
     console.log("Wallet saved to DB:", wallet);
+
+    await memoryService.storeWallet(userId, cdpWallet)
+    const checkMemory = memoryService.hasWallet(userId)
+    // console.log(checkMemory, "... memory check")
+
+    const getWallet = await memoryService.retrieveWallet(userId)
+    console.log(getWallet, "... check Wallet... data exist")
 
     res.status(201).json({
       success: true,
@@ -262,3 +272,33 @@ exports.getTransactionHistory = async (req, res) => {
     });
   }
 };
+
+
+exports.getUserWallet = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const wallet = await Wallet.findOne({ userId });
+
+    if (!wallet) {
+      return res.status(404).json({
+        success: false,
+        message: "Wallet not found",
+      });
+    }
+
+    const getWallet = await memoryService.retrieveWallet(userId)
+    console.log(getWallet, "getWallet.....Details ")
+
+    res.status(200).json({
+      success: true,
+      data: wallet,
+    });
+  } catch (error) {
+    console.error("Get wallet error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
