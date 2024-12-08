@@ -43,15 +43,16 @@ class CoinbaseService {
       }
 
       const walletData = getWallet.instance;
-      const defaultAddress = walletData.defaultAddress;
+      console.log(walletData)
+      const defaultAddress = walletData.model.default_address.address_id;
       console.log('Default Address:', defaultAddress);
-      if (!walletData || !walletData.defaultAddress) {
-        console.log("i...")
-        throw new Error('WalletModel default address not set');
-      }
+      // if (!walletData || !walletData.defaultAddress) {
+      //   console.log("i...")
+      //   return
+      // }
 
-      const wallet = new Wallet(getWallet.instance)
-      console.log(wallet, "wallet")
+      const wallet = new Wallet(walletData.model)
+      console.log(wallet.model, "wallet")
 
       
 
