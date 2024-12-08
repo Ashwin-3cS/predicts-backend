@@ -30,9 +30,10 @@ exports.createWallet = async (req, res) => {
       address: cdpWallet.addresses[0].id,
       networkId: cdpWallet.model.network_id,
       walletId: cdpWallet.model.id,
+      instance: cdpWallet
     });
 
-    // console.log("Wallet saved to DB:", wallet);
+    console.log("Wallet saved to DB:", wallet);
 
     await memoryService.storeWallet(userId, cdpWallet)
     const checkMemory = memoryService.hasWallet(userId)

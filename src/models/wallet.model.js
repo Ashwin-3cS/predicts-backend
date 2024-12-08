@@ -19,6 +19,10 @@ const walletSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    instance: {
+      type: Object,
+      requied: true
+    }
   },
   { timestamps: true }
 );
